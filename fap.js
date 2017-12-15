@@ -18,7 +18,7 @@ var debugPos = false;
 /*
  *	$(thumbnailLinkSelector) should select all submission links in a gallery / fav / submission view.
  */
-var thumbnailLinkSelector = 'a[href*="/view/"]'; 
+var thumbnailLinkSelector = 'a[href^="/view/"]'; 
 
 /*
  *	$(string).match(idRegex) should extract the number from http://www.furaffinity.net/12345678.
@@ -28,7 +28,7 @@ var idRegex = '[0-9]+';
 /*
  *	$(downloadSelector) should select the download link on a submission page.
  */
-var downloadSelector = '.actions > :nth-of-type(2) > a';
+var downloadSelector = '.actions > :nth-of-type(2) > a, a.button.download-logged-in';
 
 /*
  *	Reading material and interesting resources for further development:
