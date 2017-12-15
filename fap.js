@@ -50,10 +50,12 @@ $(thumbnailLinkSelector).mouseenter(function() {
 	var submissionUrl = $(this).prop('href');
 	if (debug) console.log('[FAP DEBUG] submissionUrl:', submissionUrl);
 
-	// from that submission page url, extract the id (for later identification with local storage)
-	// not used for now - re-enable when local storage saving is implemented
-	// var submissionId = submissionUrl.match(idRegex)[0];
+	// from that submission page url, extract the id (for later identification)
+	var submissionId = submissionUrl.match(idRegex)[0];
 	// if (debug) console.log('[FAP DEBUG] submissionId:', submissionId);
+
+	// stash this id globally to help avoid showing the preview in case the cursor has moved on to another image in the meanwhile
+	window.submissionId = submissionId;
 
 	// retrieve the submission page for that image
 	$.ajax({
@@ -82,8 +84,9 @@ $(thumbnailLinkSelector).mouseenter(function() {
 					// set the containers dimensions, position and the image object's position according to mouse position
 					setDimensions();
 
-					// and finally display the preview container
-					$('#fap-container > img').show();
+					// and finally display the preview container, if the cursor still hovers over the loaded image
+					if (window.submissionId == submissionId)
+						$('#fap-container').fadeIn(80);
 
 					// TODO: download the image and save it to local storage for later retrieval.
 
@@ -105,7 +108,7 @@ $(thumbnailLinkSelector).mouseenter(function() {
 // hide the preview container as soon as the mouse pointer hits anything other than a thumbnail
 $('*:not('+thumbnailLinkSelector+'):not(#fap-container)').mouseenter(function() {
 	if (debugPos) console.log("[FAP DEBUG] MouseLeave");
-	$('#fap-container > img').hide();
+	$('#fap-container').hide();
 })
 
 // on each mouse move, save mouse position globally to be used in setDimensions()
@@ -178,5 +181,3 @@ function setDimensions() {
 		'height': height
 	})
 }
-
-
