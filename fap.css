@@ -1,12 +1,20 @@
-#fap-container {
+.fap-container {
 	z-index: 9999;
 	position: fixed;
 	background-color: transparent;
+	display: none;
 }
-#fap-container > img {
+.fap-container > img {
 	position: absolute;
 	max-width: 100%;
 	max-height: 100%;
 	border: 1px solid #ccd;
 	box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.75);
+}
+.gallery figure:not(:hover) ~ .fap-container {
+	opacity: 0;
+}
+.gallery figure:hover ~ .fap-container {
+	display: block;
+	opacity: 1;
 }

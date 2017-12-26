@@ -18,10 +18,10 @@ var debugPos = false;
 /*
  *	$(thumbnailLinkSelector) should select all submission links in a gallery / fav / submission view.
  */
-var thumbnailLinkSelector = 'a[href^="/view/"]'; 
+var thumbnailLinkSelector = 'a[href^="/view/"]';
 
 /*
- *	$(string).match(idRegex) should extract the number from http://www.furaffinity.net/12345678.
+ *	$(string).match(idRegex) should extract the number from an URL string like http://www.furaffinity.net/view/232578/.
  */
 var idRegex = '[0-9]+';
 
@@ -40,8 +40,8 @@ var downloadSelector = '.actions > :nth-of-type(2) > a, a.button.download-logged
  */
 
 // append a container to the document; we'll set its dimensions and position later and add the preview image.
-$(document.body).append($('<div id="fap-container"></div>'));
-var popup_div = $('#fap-container');
+$('.gallery').append($('<div class="fap-container"></div>'));
+var popup_div = $('.fap-container');
 
 // on each thumbnail, add an event to display the preview
 $(thumbnailLinkSelector).mouseenter(function() {
@@ -78,7 +78,7 @@ $(thumbnailLinkSelector).mouseenter(function() {
 					if (debug) console.log('[FAP DEBUG] Image loaded; result:', img);
 					
 					// ... place that image object into the preview container
-					$('#fap-container').html(img);
+					$('.fap-container').html(img);
 					if (debugPos) console.log("[FAP DEBUG] MouseEnter");
 					
 					// set the containers dimensions, position and the image object's position according to mouse position
@@ -86,7 +86,9 @@ $(thumbnailLinkSelector).mouseenter(function() {
 
 					// and finally display the preview container, if the cursor still hovers over the loaded image
 					if (window.submissionId == submissionId)
-						$('#fap-container').fadeIn(80);
+						$('.fap-container').fadeIn(80);
+					else
+						$('.fap-container').hide();
 
 					// TODO: download the image and save it to local storage for later retrieval.
 
@@ -106,10 +108,12 @@ $(thumbnailLinkSelector).mouseenter(function() {
 })
 
 // hide the preview container as soon as the mouse pointer hits anything other than a thumbnail
-$('*:not('+thumbnailLinkSelector+'):not(#fap-container)').mouseenter(function() {
-	if (debugPos) console.log("[FAP DEBUG] MouseLeave");
-	$('#fap-container').hide();
-})
+// EVICTION NOTICE: this is being taken care of by css now
+// $('*:not('+thumbnailLinkSelector+'):not(.fap-container)').mouseenter(function() {
+// 	if (debugPos) console.log("[FAP DEBUG] MouseLeave");
+// 	// window.FAPreviewer = false;
+// 	$('.fap-container').hide();
+// })
 
 // on each mouse move, save mouse position globally to be used in setDimensions()
 $(document).mousemove(function(event) {
@@ -120,7 +124,7 @@ $(document).mousemove(function(event) {
 
 // set the preview container's position, dimension and the image position according to mouse position
 function setDimensions() {
-	var display = $('#fap-container');
+	var display = $('.fap-container');
 
 	// read mouse position from previously saved global variables
 	var posx = window.posx;
@@ -142,7 +146,7 @@ function setDimensions() {
 	height = vpHeight - posy - 20;
 	
 	// set the image within the preview container to stick to the upper left corner
-	$('#fap-container > img').css({
+	$('.fap-container > img').css({
 		'top': 0,
 		'left': 0,
 		'bottom': 'auto',
@@ -155,7 +159,7 @@ function setDimensions() {
 		width = posx;
 		posx = 0;
 		width = width - 20;
-		$('#fap-container > img').css({
+		$('.fap-container > img').css({
 			'left': 'auto',
 			'right': 0
 		});
@@ -167,7 +171,7 @@ function setDimensions() {
 		height = posy;
 		posy = 0;
 		height = height - 20;
-		$('#fap-container > img').css({
+		$('.fap-container > img').css({
 			'top': 'auto',
 			'bottom': 0
 		});
