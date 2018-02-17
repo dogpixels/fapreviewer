@@ -3,9 +3,11 @@ FurAffinity Previewer Extension for Firefox
 
 Inspired by the original for Google Chrome by Serofox.
 
+*Attention Beta Layout Users*: FurAffinity's Beta Layout is subject to constant change; support cannot be guaranteed at this unstable time. 
+
 # Requirements
 * Firefox 57+
-* Works only on FurAffinity, old and new (beta) design
+* Works only on FurAffinity, classic layout
 
 # Installation
 Go to https://addons.mozilla.org/firefox/addon/furaffinity-previewer/ and click "Add to Firefox".
