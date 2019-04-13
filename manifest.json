@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "FurAffinity Previewer for Firefox",
-	"version": "1.3",
+	"version": "2.0",
 	"description": "A very basic submission previewer for FurAffinity, inspired by the original for Chrome by Serofox. Hover over any image on a gallery or submission view on FurAffinity and get a bigger image preview displayed. Source: https://github.com/dogpixels/fapreviewer",
 	"icons": {
 		"16": "img/fap16.png",
@@ -12,8 +12,11 @@
 	"content_scripts": [
 		{
 			"matches": ["*://*.furaffinity.net/*"],
-			"js": ["lib/jquery-3.2.1.min.js", "fap.js"],
+			"js": ["fap.js"],
 			"css": ["fap.css"]
 		}
+	],
+	"permissions": [
+		"*://*.facdn.net/*"
 	]
 }

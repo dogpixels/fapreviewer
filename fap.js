@@ -1,187 +1,127 @@
 /*	
  *	FurAffinity Previewer for Firefox
- * 	Version 1.0
+ * 	Version 2.0
  * 	draconigen@gmail.com
  *  inspired by the original for Chrome: FA Previewer by Serofox
  */
 
-/*
- *	debug console output true|false for url detection and data retrieval
- */
 var debug = false;
 
-/*
- *	debug console output true|false for preview display positioning
- */
-var debugPos = false;
+var links = document.querySelectorAll('.gallery a[href^="/view/"]:not([title])');
 
-/*
- *	$(thumbnailLinkSelector) should select all submission links in a gallery / fav / submission view.
- */
-var thumbnailLinkSelector = 'a[href^="/view/"]';
-
-/*
- *	$(string).match(idRegex) should extract the number from an URL string like http://www.furaffinity.net/view/232578/.
- */
-var idRegex = '[0-9]+';
-
-/*
- *	$(downloadSelector) should select the download link on a submission page.
- */
-var downloadSelector = '.actions > :nth-of-type(2) > a, a.button.download-logged-in';
-
-/*
- *	Reading material and interesting resources for further development:
- *	[0] about:debugging#addons
- *	[1] https://developer.mozilla.org/en-US/Add-ons/WebExtensions
- *	[2] https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/storage/StorageArea/set
- *	[3] https://hacks.mozilla.org/2012/02/saving-images-and-files-in-localstorage/
- *	[4] https://stackoverflow.com/a/19183658
- */
-
-// append a container to the document; we'll set its dimensions and position later and add the preview image.
-$('.gallery').append($('<div class="fap-container"></div>'));
-var popup_div = $('.fap-container');
-
-// on each thumbnail, add an event to display the preview
-$(thumbnailLinkSelector).mouseenter(function() {
+links.forEach(link => {
+	var id = link.href.match('view\/([0-9]*)\/')[1];
 	
-	// read the submission page url from the thumbnail link
-	var submissionUrl = $(this).prop('href');
-	if (debug) console.log('[FAP DEBUG] submissionUrl:', submissionUrl);
+	var img = document.createElement('img');
+	var div = document.createElement('div');
+	div.appendChild(img);
 
-	// from that submission page url, extract the id (for later identification)
-	var submissionId = submissionUrl.match(idRegex)[0];
-	// if (debug) console.log('[FAP DEBUG] submissionId:', submissionId);
+	var blob = sessionStorage.getItem(id);
 
-	// stash this id globally to help avoid showing the preview in case the cursor has moved on to another image in the meanwhile
-	window.submissionId = submissionId;
+	// init with loading img
+	if (!blob) {
+		img.src = 'data:image/gif;base64,R0lGODdhPAA8AHcAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQEFAAAACwAAAAAPAA8AIEVFRViYmIAAAAAAAACmISPqWvhD6Ocjtl7qN4P+8WF00dm4lmVJIqqKyu6HxzLGB3aN77pF9/zMYAa4ZA4MiqQSSWCKXEmoBHpk9qxNrApLbdr/Qa0Wy4ZID6nyWvvV/1mx91meZ2OhXMF/L7/DxgoOEhYaHiImKi4yNjo+AgZKTlJWWl5iZmpucnZ6fkJGio6SlpqeoqaqrrK2ur6ChsrO0tbi1kAACH5BAQUAAAALAAAAAA8ADwAgQAAABUVFWJiYgAAAAKxhI+pa+EPo5yO2Xuo3g/7xYXTR2biWZUkiqorK7ofHMsYHdo3vukX3/MxgBrhkDgyKpBJJYIpcSagEemT2rE2sCktt2v9BrRbLhkgPqfJa+9X/WbH3WZ5nY6F362Cvv8PGCjYdzZoeOhXiLgYqMj4KOAIuSg5eVhpOYiZ2UjGibj5megpqkla2qmFKhha2ir6+hnLOZtZa3k7mQu5+9jL+Et5ujqqSvwXDDp8nHy5TFwAACH5BAQUAAAALAAAAAA8ADwAgQAAAGJiYhUVFQAAAAKYhI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTNf2jef6zvf+LwoIh8Si8SgUKJfMpvOpREqnQ6j1uqRqj9jucwuuesfRMJhMNp/RXvWW3XZT4V35nH61T/F5PZJv5fcH+CVoRFhoSITopFjE2OS4CJklmURZZomZKbkpYHmJCRrgOVoKeqq5abqK2qoq6hoLS8mKWQAAIfkEBBQAAAAsAAAAADwAPACBYmJiAAAAFRUVAAAAArKEj6lr4Q+jnI7Ze6jeD/vFhdNHZuJZlSSKqisruh8cyxgd2je+6Rff8zGAGuGQODIqkEklgilxJqAR6ZPasTawKS23a/0GtFsuGSA+p8lr71f9ZsfdZnmdjoVzBfy+/w8YyCcmWGjYR3ioCJi46CjQ+KgYKWlIWSl4icn4tXmo6YnYGZo5Ssq5d4qKpbpK1foHSiobSutpu4mLqVvJK+n7COwovEg8aQoLiQxr/LncKlYAADs=';
+		img.alt = 'void';
+	}
+	// or with image from storage if available
+	else {
+		img.src = blob;
+		img.alt = id;
+	}
 
-	// retrieve the submission page for that image
-	$.ajax({
-		url: submissionUrl,
-		error: function(jqXHR, textStatus, errorThrown) {
-			console.log('[FAP ERROR] Ajax failed. Details:', {jqXHR, textStatus, errorThrown});
-		},
-		success: function(data, textStatus, jqXHR) {
-			if (debug) console.log('[FAP DEBUG] Ajax OK, data:', data);
+	div.classList.add('fap-container', 'fap-hidden');	
 
-			// on the submission page, look for the download link and extract the full image url
-			var imageUrl = $(data).find(downloadSelector).prop('href');
-			if (debug) console.log('[FAP DEBUG] imageUrl:', imageUrl);
+	document.body.appendChild(div);
 
-			// create an image dom object, set its' src attribute to the full image url, and, as soon as the image is loaded...
-			var img = $("<img />").attr('src', imageUrl).on('load', function() {
-				if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
-					console.log('[FAP ERROR] Failed to load image.');
-				} else {
-					if (debug) console.log('[FAP DEBUG] Image loaded; result:', img);
-					
-					// ... place that image object into the preview container
-					$('.fap-container').html(img);
-					if (debugPos) console.log("[FAP DEBUG] MouseEnter");
-					
-					// set the containers dimensions, position and the image object's position according to mouse position
-					setDimensions();
+	link.addEventListener('mouseenter', async function(e) {
+		if (debug) console.log(e);
 
-					// and finally display the preview container, if the cursor still hovers over the loaded image
-					if (window.submissionId == submissionId)
-						$('.fap-container').fadeIn(80);
-					else
-						$('.fap-container').hide();
+		div.classList.replace('fap-hidden', 'fap-visible');
 
-					// TODO: download the image and save it to local storage for later retrieval.
+		if (img.alt === 'void') {
+			img.alt = 'Loading...';
+			try {
+				// dirty dog footprints ahead...
+				var pageHtml = await (await fetch(link.href)).text();
+				var blob = await readBlob(await (await fetch('https:' + pageHtml.match(new RegExp('<a href="(\/\/[^ ]*)">Download<\/a>', 'mi'))[1])).blob());
+				
+				img.src = blob;
+				img.alt = id;
 
-					// prepare dataset
-					// var dataset = {
-					// 	"submissionId": submissionId,		// submission id
-					// 	"submissionUrl": submissionUrl,		// url of submission page
-					// 	"timestamp": new Date(),			// timestamp of retrieval
-					// 	"imageUrl": imageUrl				// image url
-					//	"image": image						// image file as blob / base64 (?) 
-					// }
-					// if (debug) console.log('[FAP DEBUG] dataset:', dataset);
-				}
-			});
+				setDimensions(div, e);
+
+				sessionStorage.setItem(id, blob);
+			}
+			catch(ex) {
+				if (debug) console.error(ex);
+				img.alt = 'void';
+			}
 		}
-	})
-})
-
-// hide the preview container as soon as the mouse pointer hits anything other than a thumbnail
-// EVICTION NOTICE: this is being taken care of by css now
-// $('*:not('+thumbnailLinkSelector+'):not(.fap-container)').mouseenter(function() {
-// 	if (debugPos) console.log("[FAP DEBUG] MouseLeave");
-// 	// window.FAPreviewer = false;
-// 	$('.fap-container').hide();
-// })
-
-// on each mouse move, save mouse position globally to be used in setDimensions()
-$(document).mousemove(function(event) {
-	window.posx = event.clientX;
-	window.posy = event.clientY;
-	setDimensions();
-})
-
-// set the preview container's position, dimension and the image position according to mouse position
-function setDimensions() {
-	var display = $('.fap-container');
-
-	// read mouse position from previously saved global variables
-	var posx = window.posx;
-	var posy = window.posy;
-	if (debugPos) console.log('[FAP DEBUG] Mouse position:', {posx, posy});
-
-	// get the initial image dimensions
-	var width = display.outerWidth();
-	var height = display.outerHeight();
-	if (debugPos) console.log('[FAP DEBUG] Preview dimensions:', {width, height});
-
-	// get the viewport's dimensions
-	var vpWidth = $(window).width();
-	var vpHeight = $(window).height();
-	//if (debugPos) console.log('[FAP DEBUG] ViewPort dimensions:', {vpWidth, vpHeight}); // 1903 x 957
-
-	// calculate dimensions for the preview container according to given space
-	width = vpWidth - posx - 20;
-	height = vpHeight - posy - 20;
-	
-	// set the image within the preview container to stick to the upper left corner
-	$('.fap-container > img').css({
-		'top': 0,
-		'left': 0,
-		'bottom': 'auto',
-		'right': 'auto'
 	});
-	
-	// if the mouse pointer is on the right half of the viewport, switch the preview to the left side of the pointer
-	// and set the image object to stick to the right within the preview container
-	if (posx > vpWidth / 2) {
-		width = posx;
-		posx = 0;
-		width = width - 20;
-		$('.fap-container > img').css({
-			'left': 'auto',
-			'right': 0
-		});
-	}
 
-	// if the mouse pointer is on the lower half of the viewport, switch the preview to above the pointer
-	// and set the image object to stick to the bottom of the preview container
-	if (posy > vpHeight / 2) {
-		height = posy;
-		posy = 0;
-		height = height - 20;
-		$('.fap-container > img').css({
-			'top': 'auto',
-			'bottom': 0
-		});
-	}
+	link.addEventListener('mouseleave', function(e) {
+		if (debug) console.log(e);
+		div.classList.replace('fap-visible', 'fap-hidden');
+	});
 
-	// now that all calculations are complete, apply dimensions and position to the preview container
-	display.css({
-		'top': posy + 10,
-		'left': posx + 10,
-		'width': width,
-		'height': height
+	link.addEventListener('mousemove', function(e) {
+		// if (debug) console.log(e);
+		div.classList.replace('fap-hidden', 'fap-visible');
+		setDimensions(div, e);
+	});
+});
+
+function readBlob(blob) {
+	return new Promise((resolve, reject) => {
+		var r = new FileReader();
+		r.onload = () => {resolve(r.result)};
+		r.onerror = reject;
+		r.readAsDataURL(blob);
 	})
 }
+
+function setDimensions(div, e) {
+	var mposx = e.clientX;
+	var mposy = e.clientY;
+
+	// Q I
+	if (mposx < (window.innerWidth / 2) && mposy < window.innerHeight / 2) {
+		div.style.justifyContent = 'flex-start';
+		div.style.alignItems = 'flex-start';
+		div.style.left = mposx + 'px';
+		div.style.top = mposy + 'px';
+		div.style.width = window.innerWidth - mposx - 60 + 'px'; // -20 for scrollbar
+		div.style.height = window.innerHeight - mposy - 50 + 'px';
+	}
+
+	// Q II
+	else if (mposx >= (window.innerWidth / 2) && mposy < window.innerHeight / 2) {
+		div.style.justifyContent = 'flex-end';
+		div.style.alignItems = 'flex-start';
+		div.style.left = 0;
+		div.style.top = mposy + 'px';
+		div.style.width = mposx - 40 + 'px';
+		div.style.height = window.innerHeight - mposy - 50 + 'px';
+	}
+
+	// Q III
+	else if (mposx >= (window.innerWidth / 2) && mposy >= window.innerHeight / 2) {
+		div.style.justifyContent = 'flex-end';
+		div.style.alignItems = 'flex-end';
+		div.style.left = 0;
+		div.style.top = 0;
+		div.style.width = mposx - 40 + 'px';
+		div.style.height = mposy - 40 + 'px';
+	}
+
+	// Q IV
+	else if (mposx < (window.innerWidth / 2) && mposy >= window.innerHeight / 2) {
+		div.style.justifyContent = 'flex-start';
+		div.style.alignItems = 'flex-end';
+		div.style.left = mposx + 'px';
+		div.style.top = 0;
+		div.style.width = window.innerWidth - mposx - 60 + 'px';
+		div.style.height = mposy - 40 + 'px';
+	}
+}
+
