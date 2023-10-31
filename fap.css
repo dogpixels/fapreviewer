@@ -1,7 +1,7 @@
 .fap-container {
 	display: flex;
 	position: fixed;
-	z-index: 9999;
+	z-index: 100000000;
 	background-color: transparent;
 	padding: 20px;
 	pointer-events: none;
