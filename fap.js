@@ -1,8 +1,7 @@
 /*	
  *	FurAffinity Previewer for Firefox
- * 	Version 2.0
+ * 	Version 2.1
  * 	draconigen@gmail.com
- *  inspired by the original for Chrome: FA Previewer by Serofox
  */
 
 var debug = false;
