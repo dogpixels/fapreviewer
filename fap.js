@@ -42,8 +42,9 @@ links.forEach(link => {
 			img.alt = 'Loading...';
 			try {
 				// dirty dog footprints ahead...
+				// dirty cheetah pawprints behind... (Changed the regex to ignore everything prior to href.)
 				var pageHtml = await (await fetch(link.href)).text();
-				var blob = await readBlob(await (await fetch('https:' + pageHtml.match(new RegExp('<a href="(\/\/[^ ]*)">Download<\/a>', 'mi'))[1])).blob());
+				var blob = await readBlob(await (await fetch('https:' + pageHtml.match(new RegExp('<a[^>]*href="(\/\/[^ ]*)">Download<\/a>', 'mi'))[1])).blob());
 				
 				img.src = blob;
 				img.alt = id;
